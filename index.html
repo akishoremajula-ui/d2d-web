@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Day 2 Day – Cafe and Food Courts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,500;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0a08;--card:#181410;--surface:#15120f;--elev:#1e1a15;
+  --line:#3b2f1f;--line-soft:rgba(59,47,31,.6);
+  --gold:#e5b358;--gold-hi:#fbe29a;--text:#f5f5f4;--soft:#d6d3d1;--muted:#a8a29e;--faint:#78716c;
+  --green:#34d399;--red:#f87171;--amber:#d97706;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:150px}
+body{background:#070605;color:var(--text);font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.ic.sm{width:14px;height:14px}
+.ic.xs{width:12px;height:12px}
+.gold-text{background:linear-gradient(135deg,#fff3c4 0%,#e5b358 50%,#b37b24 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* placeholder for food photography (Figma image assets) */
+.ph{background:radial-gradient(circle at 35% 30%,hsl(var(--h,30) 55% 38%) 0%,#2a1c10 55%,#120d08 100%)}
+.ph-hero{background:radial-gradient(circle at 30% 35%,#8a5a22 0%,#3d2611 45%,#120d08 100%)}
+
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:calc(160px + env(safe-area-inset-bottom));box-shadow:0 0 0 1px var(--line-soft)}
+@media (min-width:600px){.app{margin:24px auto;border-radius:24px;overflow:hidden;min-height:calc(100vh - 48px)}}
+
+/* ---------- Sticky header ---------- */
+.topbar{position:sticky;top:0;z-index:10;background:rgba(12,10,8,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line-soft);padding:calc(12px + env(safe-area-inset-top)) 16px 13px;display:flex;flex-direction:column;gap:12px}
+.top-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.loc{display:flex;align-items:center;gap:10px;min-width:0}
+.loc-pin{width:40px;height:40px;border-radius:50%;background:var(--elev);border:1px solid rgba(229,179,88,.4);display:grid;place-items:center;color:var(--gold);flex-shrink:0}
+.brand-line{display:flex;align-items:center;gap:6px}
+.brand-sm{font-family:Cinzel,serif;font-weight:700;font-size:14px;letter-spacing:.7px;text-transform:uppercase;line-height:20px}
+.pill{background:rgba(69,26,3,.8);border:1px solid rgba(229,179,88,.3);color:var(--gold-hi);font-size:9px;font-weight:600;padding:1px 7px;border-radius:999px;white-space:nowrap}
+.loc-sub{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px;font-weight:500;margin-top:2px;min-width:0}
+.loc-sub span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.actions{display:flex;gap:8px;flex-shrink:0}
+.icon-btn{position:relative;width:36px;height:36px;border-radius:50%;background:var(--elev);border:1px solid var(--line);display:grid;place-items:center;color:var(--soft)}
+.icon-btn.cart{border-color:rgba(229,179,88,.4);color:var(--gold)}
+.dot-red{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 2px #0c0a08}
+.count{position:absolute;top:-5px;right:-4px;min-width:17px;height:19px;padding:0 5px;border-radius:999px;background:var(--amber);border:2px solid #0c0a08;color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;line-height:1}
+.search{position:relative}
+.search input{width:100%;height:34px;border-radius:999px;background:var(--elev);border:1px solid rgba(59,47,31,.8);padding:0 44px 0 36px;font-size:12px;outline:none}
+.search input::placeholder{color:var(--faint);opacity:1}
+.search input:focus{border-color:rgba(229,179,88,.6)}
+.search .s-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.filter-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:26px;height:26px;display:grid;place-items:center;color:var(--gold);border-radius:50%}
+
+main{padding-top:12px;display:flex;flex-direction:column;gap:24px;padding-bottom:8px}
+
+/* ---------- Hero ---------- */
+.hero{margin:0 16px}
+.hero-card{position:relative;border-radius:16px;border:1px solid rgba(229,179,88,.45);background:linear-gradient(180deg,#1c1917 0%,#15120f 50%,#0c0a08 100%);overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
+.hero-media{position:relative;height:224px;margin-bottom:-40px;overflow:hidden}
+.hero-media::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,#0c0a08 0%,rgba(12,10,8,.5) 50%,rgba(12,10,8,0) 100%)}
+.hero-tag{position:absolute;top:12px;right:12px;z-index:2;display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:rgba(12,10,8,.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(229,179,88,.6);color:var(--gold-hi);font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:11px}
+.hero-tag .ic{color:var(--gold)}
+.hero-body{position:relative;z-index:1;padding:16px}
+.welcome{display:flex;align-items:center;gap:8px}
+.welcome span{color:var(--gold);font-weight:700;font-size:11px;letter-spacing:1.1px;text-transform:uppercase}
+.welcome i{flex:1;height:1px;background:rgba(229,179,88,.4)}
+.brand-xl{margin-top:2px;font-family:Cinzel,serif;font-weight:900;font-size:24px;letter-spacing:.6px;line-height:32px}
+.hero-sub{font-weight:500;font-size:12px;letter-spacing:.3px;color:rgba(251,226,154,.9)}
+.slogan{padding-top:8px;font-family:'Playfair Display',serif;font-style:italic;font-weight:500;font-size:14px;color:rgba(253,230,138,.9)}
+.hero-desc{padding-top:8px;font-size:11px;line-height:1.6;color:rgba(214,211,209,.8)}
+.hero-btns{display:flex;gap:10px;padding-top:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn-gold{flex:1;background:linear-gradient(135deg,#fbe29a 0%,#d89b37 60%,#a46d1c 100%);color:#0c0a09;box-shadow:0 10px 15px -3px rgba(120,53,15,.4),0 4px 6px -4px rgba(120,53,15,.4)}
+.btn-line{background:var(--elev);border:1px solid rgba(229,179,88,.5);color:var(--gold-hi);font-weight:600;padding:11px 17px}
+.dots{display:flex;justify-content:center;gap:6px;padding-top:16px}
+.dots i{width:6px;height:6px;border-radius:999px;background:#57534e}
+.dots i.on{width:16px;background:var(--gold)}
+
+/* ---------- Guarantees ---------- */
+.pillars{margin:0 16px;display:flex;align-items:stretch;background:var(--surface);border:1px solid rgba(59,47,31,.8);border-radius:12px;padding:13px 4px}
+.pillar{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 4px;text-align:center;color:var(--soft);font-size:9px;font-weight:500}
+.pillar + .pillar{border-left:1px solid rgba(59,47,31,.6)}
+.pillar .ic{width:14px;height:14px;color:var(--gold)}
+
+/* ---------- Veg / non-veg filter ---------- */
+.filters{margin:0 16px;display:flex;gap:8px;padding:5px;background:var(--surface);border:1px solid rgba(59,47,31,.8);border-radius:12px}
+.chip{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 8px;border-radius:8px;background:var(--elev);border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--soft);white-space:nowrap}
+.chip.on{background:var(--gold);border-color:var(--gold);color:#0c0a09}
+.mark{width:12px;height:12px;border:1px solid;border-radius:4px;display:grid;place-items:center}
+.mark i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.veg .mark{border-color:#10b981;color:var(--green)}
+.chip.nonveg .mark{border-color:#ef4444;color:#ef4444}
+
+/* ---------- Categories ---------- */
+.cats{padding:0 16px;display:flex;flex-direction:column;gap:10px}
+.row-between{display:flex;align-items:center;justify-content:space-between}
+.eyebrow{font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);line-height:16px}
+.link{color:var(--gold);font-size:11px}
+.pillrow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.pillrow::-webkit-scrollbar{display:none}
+.cat{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:7px 15px;border-radius:999px;background:var(--elev);border:1px solid var(--line);font-size:12px;font-weight:500;color:var(--soft);white-space:nowrap}
+.cat.on{background:var(--gold);border-color:var(--gold);color:#0c0a09;font-weight:700}
+.cat .ic{color:var(--gold)}
+.cat.on .ic{color:#0c0a09}
+
+/* ---------- Menu header ---------- */
+.menu-head{padding:0 16px;display:flex;flex-direction:column;gap:3px}
+.menu-title{display:flex;align-items:center;gap:12px}
+.menu-title hr{flex:1;border:0;height:1px;background:linear-gradient(90deg,rgba(229,179,88,0),rgba(229,179,88,.6),rgba(229,179,88,0))}
+.menu-title h2{display:flex;align-items:center;gap:8px;font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:20px;letter-spacing:.5px;white-space:nowrap;line-height:28px}
+.menu-title h2 .ic{width:14px;height:14px;color:var(--gold)}
+.menu-sub{text-align:center;font-size:11px;color:var(--muted);line-height:16.5px}
+
+/* ---------- Menu items ---------- */
+.items{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.card{position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;padding:13px;border-radius:16px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.card.feature{background:linear-gradient(90deg,#181410 0%,rgba(69,26,3,.4) 100%);border-color:rgba(229,179,88,.5)}
+.card::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(160px circle at var(--mx,50%) var(--my,50%),rgba(229,179,88,.14),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none}
+.card:hover::before{opacity:1}
+.thumb{position:relative;width:96px;height:96px;flex-shrink:0;border-radius:12px;overflow:hidden;border:1px solid var(--line-soft)}
+.card.feature .thumb{border-color:rgba(229,179,88,.5)}
+.tag-veg{position:absolute;top:4px;left:4px;display:flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-size:8px;font-weight:700;line-height:12px}
+.tag-veg.veg{background:rgba(2,44,34,.9);border:1px solid rgba(16,185,129,.5);color:var(--green)}
+.tag-veg.nonveg{background:rgba(12,10,9,.9);border:1px solid rgba(239,68,68,.6);color:var(--red)}
+.tag-veg.nonveg i{width:6px;height:6px;border-radius:50%;background:#dc2626}
+.rating{position:absolute;right:4px;bottom:4px;padding:2px 6px;border-radius:4px;background:rgba(12,10,8,.9);font-size:9px;font-weight:700;color:var(--gold);line-height:13.5px}
+.info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.info-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.info h3{display:flex;align-items:center;gap:4px;min-width:0;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;line-height:20px;color:var(--text)}
+.info h3 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.info h3 .ic{width:11px;height:11px;color:var(--gold)}
+.price{font-weight:700;font-size:14px;color:var(--gold);line-height:20px;flex-shrink:0}
+.desc{font-size:11px;line-height:17.88px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;height:36px}
+.info-bot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px}
+.meta{font-size:10px;font-weight:500;color:var(--faint);line-height:15px;white-space:nowrap}
+.meta.gold{color:rgba(251,191,36,.9)}
+.meta.best{color:var(--gold);font-weight:600}
+.add{display:flex;align-items:center;gap:4px;height:28px;padding:0 15px;border-radius:8px;background:var(--elev);border:1px solid rgba(229,179,88,.6);color:var(--gold);font-weight:700;font-size:12px;box-shadow:0 1px 1px rgba(0,0,0,.05);transition:transform .15s,background .2s,color .2s}
+.add:active{transform:scale(.96)}
+.add .plus{font-size:10px}
+.add.on{background:var(--gold);color:#0c0a09}
+
+/* ---------- Enquiry form (added; not in Figma) ---------- */
+.enquiry{margin:0 16px;padding:20px;border-radius:16px;border:1px solid rgba(229,179,88,.3);background:linear-gradient(90deg,#1c1917 0%,rgba(69,26,3,.3) 50%,#1c1917 100%)}
+.enquiry h2{display:block;text-align:center;font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:18px;line-height:28px}
+.enquiry .sub{text-align:center;font-size:12px;line-height:1.5;color:var(--muted);margin:4px 0 16px}
+.enquiry label{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:11px;font-weight:600;color:var(--soft)}
+.field{width:100%;height:42px;border-radius:10px;background:var(--elev);border:1px solid var(--line);padding:0 12px;font-size:13px;color:var(--text);outline:none}
+.field::placeholder{color:var(--faint);opacity:1}
+.field:focus{border-color:var(--gold)}
+.submit{width:100%;height:44px;margin-top:4px;border-radius:12px;background:linear-gradient(135deg,#fbe29a 0%,#d89b37 60%,#a46d1c 100%);color:#0c0a09;font-weight:700;font-size:13px;box-shadow:0 10px 15px -3px rgba(120,53,15,.4)}
+.submit:disabled{opacity:.6;cursor:wait}
+.form-msg{min-height:16px;margin-top:12px;text-align:center;font-size:12px}
+.form-msg.ok{color:var(--green)}
+.form-msg.err{color:var(--red)}
+
+/* ---------- Footer tagline ---------- */
+.footer{position:relative;overflow:hidden;margin:0 16px;padding:29px 21px 21px;border-radius:16px;border:1px solid rgba(229,179,88,.3);background:linear-gradient(90deg,#1c1917 0%,rgba(69,26,3,.3) 50%,#1c1917 100%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.footer-title{display:flex;align-items:center;gap:8px}
+.footer-title h2{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:18px;line-height:28px}
+.footer-title .ic{width:12px;height:12px;color:var(--gold)}
+.footer p{max-width:320px;font-size:12px;line-height:16px;color:var(--muted);margin-top:4px}
+.contact{display:flex;align-items:center;justify-content:center;gap:16px;padding-top:8px;font-size:11px;font-weight:500;color:var(--gold-hi)}
+.contact span{display:flex;align-items:center;gap:4px}
+.contact .ic{width:12px;height:12px;color:var(--gold)}
+.footer::after{content:"";position:absolute;right:-24px;top:-16px;width:80px;height:80px;border-radius:50%;background:rgba(229,179,88,.1);filter:blur(24px)}
+
+/* ---------- Sticky cart bar ---------- */
+.cart-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(68px + env(safe-area-inset-bottom));width:min(448px,calc(100% - 32px));z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px;border-radius:16px;background:linear-gradient(90deg,#d97706 0%,#f59e0b 50%,#eab308 100%);border:1px solid rgba(252,211,77,.4);box-shadow:0 20px 25px -5px rgba(69,26,3,.6),0 8px 10px -6px rgba(69,26,3,.6)}
+.cb-left{display:flex;align-items:center;gap:10px;min-width:0}
+.cb-count{width:32px;height:32px;flex-shrink:0;border-radius:12px;background:rgba(0,0,0,.2);display:grid;place-items:center;font-weight:700;font-size:12px;color:#0c0a09}
+.cb-title{font-weight:700;font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:#0c0a09;line-height:15px}
+.cb-sub{margin-top:4px;font-weight:600;font-size:11px;color:#1c1917;line-height:11px;white-space:nowrap}
+.pay{display:flex;align-items:center;gap:6px;flex-shrink:0;padding:6px 14px;border-radius:12px;background:#0c0a09;color:var(--gold-hi);font-weight:700;font-size:12px;white-space:nowrap;box-shadow:0 4px 6px -1px rgba(0,0,0,.1)}
+.pay .ic{width:12px;height:12px}
+
+/* ---------- Sticky bottom navigation ---------- */
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(480px,100%);z-index:20;display:flex;justify-content:space-between;padding:8px 24px calc(8px + env(safe-area-inset-bottom));background:rgba(12,10,8,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(59,47,31,.8)}
+.nav a{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 8px;font-size:10px;font-weight:500;letter-spacing:-.25px;color:var(--muted)}
+.nav a.on{color:var(--gold);font-weight:700}
+.nav .ic{width:16px;height:16px}
+.nav .b{position:absolute;top:-4px;right:-8px;min-width:16px;height:14px;padding:0 4px;border-radius:999px;background:#dc2626;color:#fff;font-size:8px;font-weight:700;line-height:14px;text-align:center}
+
+/* ---------- Scroll reveal ---------- */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 14 6 8z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 7H6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H10v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-percent" viewBox="0 0 24 24"><path d="M5 19L19 5"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12"/></symbol>
+  <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.5 12.9L17 22l-5-3-5 3 1.5-9.1"/></symbol>
+  <symbol id="i-cup" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><path d="M6 1v3M10 1v3M14 1v3"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+</svg>
+
+<div class="app" id="top">
+
+  <!-- Sticky header: location, actions, search -->
+  <header class="topbar">
+    <div class="top-row">
+      <div class="loc">
+        <div class="loc-pin"><svg class="ic sm"><use href="#i-pin"/></svg></div>
+        <div style="min-width:0">
+          <div class="brand-line">
+            <span class="brand-sm gold-text">Day 2 Day</span>
+            <span class="pill">Court 1</span>
+          </div>
+          <div class="loc-sub">
+            <svg class="ic xs"><use href="#i-pin"/></svg>
+            <span>Express Food Court, Bay #4</span>
+            <svg class="ic xs"><use href="#i-chev"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" aria-label="Notifications">
+          <svg class="ic sm"><use href="#i-bell"/></svg>
+          <span class="dot-red"></span>
+        </button>
+        <button class="icon-btn cart" aria-label="View cart" onclick="document.getElementById('pay').focus()">
+          <svg class="ic sm"><use href="#i-cart"/></svg>
+          <span class="count" id="cart-count">3</span>
+        </button>
+      </div>
+    </div>
+    <label class="search">
+      <svg class="ic sm s-ic"><use href="#i-search"/></svg>
+      <input id="search" type="search" placeholder="Search crispy dosa, filter coffee, idli, meals..." aria-label="Search menu">
+      <button class="filter-btn" type="button" aria-label="Filter options"><svg class="ic sm"><use href="#i-sliders"/></svg></button>
+    </label>
+  </header>
+
+  <main>
+
+    <!-- Hero banner -->
+    <section class="hero" aria-label="Welcome">
+      <div class="hero-card">
+        <div class="hero-media ph ph-hero" role="img" aria-label="Day 2 Day South Indian feast with dosa, idli, pongal, vada and filter coffee">
+          <span class="hero-tag"><svg class="ic xs"><use href="#i-cup"/></svg>Degree Filter Coffee</span>
+        </div>
+        <div class="hero-body">
+          <div class="welcome"><span>Welcome to</span><i></i></div>
+          <h1 class="brand-xl gold-text">Day 2 Day</h1>
+          <p class="hero-sub">Cafe and Food Courts</p>
+          <p class="slogan">“Good Food • Great Mood”</p>
+          <p class="hero-desc">Enjoy delicious authentic South Indian food, refreshing drinks,<br>and unforgettable moments with us!</p>
+          <div class="hero-btns">
+            <a href="#menu" class="btn btn-gold"><svg class="ic sm"><use href="#i-grid"/></svg>Explore Menu<svg class="ic xs"><use href="#i-chev"/></svg></a>
+            <a href="#menu" class="btn btn-line"><svg class="ic sm"><use href="#i-cart"/></svg>Order Now</a>
+          </div>
+          <div class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Four guarantees -->
+    <section class="pillars" aria-label="Our guarantees">
+      <div class="pillar"><svg class="ic"><use href="#i-leaf"/></svg><span>Fresh &amp; Hygienic</span></div>
+      <div class="pillar"><svg class="ic"><use href="#i-award"/></svg><span>Premium Quality</span></div>
+      <div class="pillar"><svg class="ic"><use href="#i-cup"/></svg><span>Aromatic Brews</span></div>
+      <div class="pillar"><svg class="ic"><use href="#i-heart"/></svg><span>Warm Service</span></div>
+    </section>
+
+    <!-- Veg / non-veg filter -->
+    <section class="filters" aria-label="Filter items">
+      <button class="chip on" data-filter="all" aria-pressed="true">All Items</button>
+      <button class="chip veg" data-filter="veg" aria-pressed="false"><span class="mark"><i></i></span>Pure Veg</button>
+      <button class="chip nonveg" data-filter="nonveg" aria-pressed="false"><span class="mark"><i></i></span>Non-Veg</button>
+    </section>
+
+    <!-- Categories -->
+    <section class="cats" aria-label="Categories">
+      <div class="row-between">
+        <span class="eyebrow">Categories</span>
+        <a href="#menu" class="link">View All</a>
+      </div>
+      <div class="pillrow" role="tablist">
+        <button class="cat on" role="tab">Popular Hits</button>
+        <button class="cat" role="tab"><svg class="ic xs"><use href="#i-leaf"/></svg>Veg Tiffin</button>
+        <button class="cat" role="tab"><svg class="ic xs"><use href="#i-star"/></svg>Biryani &amp; Non-Veg</button>
+        <button class="cat" role="tab">Dosa Varieties</button>
+        <button class="cat" role="tab">Starters &amp; Fries</button>
+        <button class="cat" role="tab">Curries &amp; Meals</button>
+        <button class="cat" role="tab">Filter Coffee &amp; Tea</button>
+      </div>
+    </section>
+
+    <!-- Menu -->
+    <section id="menu" aria-label="Our menu" style="display:flex;flex-direction:column;gap:12px">
+      <div class="menu-head">
+        <div class="menu-title">
+          <hr>
+          <h2><svg class="ic"><use href="#i-leaf"/></svg><span class="gold-text">Our Menu</span><svg class="ic"><use href="#i-star"/></svg></h2>
+          <hr>
+        </div>
+        <p class="menu-sub">Curated traditional recipes made fresh daily</p>
+      </div>
+      <div class="items" id="items"></div>
+    </section>
+
+    <!-- Enquiry form (added to the design) -->
+    <section class="enquiry reveal" aria-labelledby="enq-title">
+      <h2 id="enq-title" class="gold-text">Stay in the Loop</h2>
+      <p class="sub">Leave your details and we will share new menu drops, weekend offers and table booking updates.</p>
+      <form id="lead-form" novalidate>
+        <label><span>Name</span>
+          <input class="field" name="name" required maxlength="100" autocomplete="name" placeholder="Your full name">
+        </label>
+        <label><span>Email</span>
+          <input class="field" type="email" name="email" required maxlength="120" autocomplete="email" placeholder="you@example.com">
+        </label>
+        <label><span>Phone</span>
+          <input class="field" type="tel" name="phone" required maxlength="20" pattern="[0-9+ ()\-]{7,20}" autocomplete="tel" placeholder="+91 98xxx xxxxx">
+        </label>
+        <button class="submit" type="submit">Submit</button>
+        <p class="form-msg" id="form-msg" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- Footer tagline -->
+    <section class="footer reveal">
+      <div class="footer-title">
+        <svg class="ic"><use href="#i-leaf"/></svg>
+        <h2 class="gold-text">Food Brings People Together</h2>
+        <svg class="ic"><use href="#i-leaf"/></svg>
+      </div>
+      <p>Visit our food court today with family &amp; loved ones for hearty South Indian breakfasts and authentic tastes.</p>
+      <div class="contact">
+        <span><svg class="ic"><use href="#i-clock"/></svg>6:30 AM - 11:00 PM</span>
+        <span><svg class="ic"><use href="#i-phone"/></svg>+91 98400 12345</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sticky cart bar with payment link -->
+  <div class="cart-bar" id="cart-bar" hidden>
+    <div class="cb-left">
+      <div class="cb-count" id="cb-count">3</div>
+      <div style="min-width:0">
+        <div class="cb-title" id="cb-title">3 items added</div>
+        <div class="cb-sub" id="cb-sub">₹245 total • Table #12</div>
+      </div>
+    </div>
+    <a class="pay" id="pay" href="https://payments.cashfree.com/forms/getaudit" target="_blank" rel="noopener">
+      View Order <svg class="ic"><use href="#i-arrow"/></svg>
+    </a>
+  </div>
+
+  <!-- Sticky bottom navigation -->
+  <nav class="nav" aria-label="Primary">
+    <a href="#top" class="on"><svg class="ic"><use href="#i-home"/></svg>Home</a>
+    <a href="#menu"><svg class="ic"><use href="#i-menu"/></svg>Menu</a>
+    <a href="#menu"><svg class="ic"><use href="#i-percent"/></svg>Offers<span class="b">%</span></a>
+    <a href="#"><svg class="ic"><use href="#i-receipt"/></svg>Orders</a>
+    <a href="#"><svg class="ic"><use href="#i-user"/></svg>Profile</a>
+  </nav>
+
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+const PAYMENT_URL = 'https://payments.cashfree.com/forms/getaudit';
+// Step 2: paste the Web app URL from Apps Script (Deploy > New deployment > Web app)
+const FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz6pXJKEO3L1Hjzz4vJMe7WOOV8vI6UIGLyFTFlZxZ0PXQdCJl__Owss9O0UHQOg9vp/exec';
+const TABLE_LABEL = 'Table #12';
+
+/* ============ MENU DATA (from Figma) ============ */
+const ITEMS = [
+  { id:'masala-dosa',     name:'Masala Dosa',                 price:95,  veg:true,  rating:4.9, hue:32, tag:'Prep: 5-8 mins',  desc:'Crispy golden fermented crepe loaded with spiced potato masala, served with chutneys and sambar.' },
+  { id:'steaming-idli',   name:'Steaming Idli (Pair)',        price:55,  veg:true,  rating:4.8, hue:28, tag:'Tiffin Special',  desc:'Melt-in-mouth pillowy steamed rice cakes served on fresh banana leaf with signature podi.' },
+  { id:'ghee-pongal',     name:'Ghee Pongal',                 price:80,  veg:true,  rating:4.9, hue:38, tag:'Pure Cow Ghee',   tagClass:'gold', desc:'Comforting blend of rice and yellow moong dal tempered with crushed black pepper and cumin.' },
+  { id:'sambar-vada',     name:'Sambar Vada (2 Pcs)',         price:65,  veg:true,  rating:4.7, hue:22, tag:'Extra Crisp',     desc:'Crispy golden urad dal fritters soaked to perfection in slow-simmered spiced lentil sambar.' },
+  { id:'filter-coffee',   name:'Degree Filter Coffee',        price:35,  veg:true,  rating:5.0, hue:25, tag:'Bestseller',      tagClass:'best', feature:true, desc:'Freshly brewed chicory blend with frothy full-cream milk, served in a traditional brass dabarah.' },
+  { id:'white-rice',      name:'White Rice Meals Combo',      price:130, veg:true,  rating:4.8, hue:40, tag:'Lunch Thali',     desc:'Steamed Ponni rice bowl served with vegetable sambar, rasam, kootu and poriyal.' },
+  { id:'chettinad-biryani',name:'Chettinad Chicken Biryani',  price:180, veg:false, rating:4.9, hue:18, tag:"Chef's Special", tagClass:'gold', feature:true, desc:'Spiced tender chicken cooked with aromatic seeraga samba rice, served with boiled egg and raita.' },
+  { id:'andhra-fry',      name:'Andhra Chicken Fry',          price:160, veg:false, rating:4.8, hue:12, tag:'Starters Hit',    desc:'Spicy tossed boneless chicken bites with roasted curry leaves and slit green chillies.' },
+  { id:'mutton-sukka',    name:'Mutton Sukka Combo',          price:220, veg:false, rating:4.9, hue:20, tag:'Bestseller',      tagClass:'best', desc:'Slow-cooked tender lamb in freshly ground roasted coastal spices, paired with parotta.' },
+  { id:'egg-dosa',        name:'Egg Dosa (Muttai Dosa)',      price:85,  veg:false, rating:4.7, hue:34, tag:'Prep: 5-7 mins',  desc:'Crispy golden fermented crepe layered with spiced beaten country egg and finely chopped onions.' }
+];
+
+/* ============ RENDER MENU ============ */
+const grid = document.getElementById('items');
+grid.innerHTML = ITEMS.map(it => `
+  <article class="card reveal${it.feature ? ' feature' : ''}" data-id="${it.id}" data-veg="${it.veg ? 'veg' : 'nonveg'}" data-name="${it.name.toLowerCase()}" style="--h:${it.hue}">
+    <div class="thumb ph" role="img" aria-label="${it.name}">
+      <span class="tag-veg ${it.veg ? 'veg' : 'nonveg'}">${it.veg ? 'VEG' : '<i></i>NON-VEG'}</span>
+      <span class="rating">★ ${it.rating.toFixed(1)}</span>
+    </div>
+    <div class="info">
+      <div class="info-top">
+        <h3><svg class="ic"><use href="#i-leaf"/></svg><span>${it.name}</span></h3>
+        <span class="price">₹${it.price}</span>
+      </div>
+      <p class="desc">${it.desc}</p>
+      <div class="info-bot">
+        <span class="meta ${it.tagClass || ''}">${it.tag}</span>
+        <button class="add" data-add="${it.id}" aria-label="Add ${it.name}">
+          <span class="plus">+</span><span class="lbl">ADD</span>
+        </button>
+      </div>
+    </div>
+  </article>
+`).join('');
+
+/* ============ CART (starts with the Figma state: 3 items, ₹245) ============ */
+const cart = { 'white-rice': 1, 'ghee-pongal': 1, 'filter-coffee': 1 };
+const bar = document.getElementById('cart-bar');
+
+function renderCart() {
+  const ids = Object.keys(cart).filter(id => cart[id] > 0);
+  const count = ids.reduce((s, id) => s + cart[id], 0);
+  const total = ids.reduce((s, id) => s + cart[id] * ITEMS.find(i => i.id === id).price, 0);
+
+  document.getElementById('cart-count').textContent = count;
+  document.getElementById('cb-count').textContent = count;
+  document.getElementById('cb-title').textContent = `${count} ${count === 1 ? 'item' : 'items'} added`;
+  document.getElementById('cb-sub').textContent = `₹${total} total • ${TABLE_LABEL}`;
+  bar.hidden = count === 0;
+
+  document.querySelectorAll('.add').forEach(btn => {
+    const q = cart[btn.dataset.add] || 0;
+    btn.classList.toggle('on', q > 0);
+    btn.querySelector('.lbl').textContent = q ? `ADD ${q}` : 'ADD';
+  });
+}
+
+grid.addEventListener('click', e => {
+  const btn = e.target.closest('[data-add]');
+  if (!btn) return;
+  const id = btn.dataset.add;
+  cart[id] = (cart[id] || 0) + 1;
+  renderCart();
+});
+
+document.getElementById('pay').href = PAYMENT_URL;
+renderCart();
+
+/* ============ FILTERS & SEARCH ============ */
+let activeFilter = 'all';
+let query = '';
+
+function applyFilters() {
+  document.querySelectorAll('.card').forEach(card => {
+    const okVeg = activeFilter === 'all' || card.dataset.veg === activeFilter;
+    const okText = !query || card.dataset.name.includes(query);
+    card.hidden = !(okVeg && okText);
+  });
+}
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    activeFilter = chip.dataset.filter;
+    document.querySelectorAll('.chip').forEach(c => {
+      const on = c === chip;
+      c.classList.toggle('on', on);
+      c.setAttribute('aria-pressed', on);
+    });
+    applyFilters();
+  });
+});
+
+document.querySelectorAll('.cat').forEach(cat => {
+  cat.addEventListener('click', () => {
+    document.querySelectorAll('.cat').forEach(c => c.classList.toggle('on', c === cat));
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  query = e.target.value.trim().toLowerCase();
+  applyFilters();
+});
+
+/* ============ SPOTLIGHT EFFECT ============ */
+grid.addEventListener('pointermove', e => {
+  const card = e.target.closest('.card');
+  if (!card) return;
+  const r = card.getBoundingClientRect();
+  card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+  card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+});
+
+/* ============ SCROLL REVEAL ============ */
+const io = 'IntersectionObserver' in window
+  ? new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12 })
+  : null;
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+
+/* ============ ENQUIRY FORM -> Google Sheets (Apps Script) ============ */
+const form = document.getElementById('lead-form');
+const msg = document.getElementById('form-msg');
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  msg.className = 'form-msg';
+  msg.textContent = '';
+  if (!form.reportValidity()) return;
+
+  if (!FORM_ENDPOINT || FORM_ENDPOINT.startsWith('PASTE_')) {
+    msg.classList.add('err');
+    msg.textContent = 'Form is not connected yet. Set FORM_ENDPOINT in index.html.';
+    return;
+  }
+
+  const fd = new FormData(form);
+  const params = new URLSearchParams({
+    name: fd.get('name').trim(),
+    email: fd.get('email').trim(),
+    phone: fd.get('phone').trim()
+  });
+
+  const btn = form.querySelector('.submit');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    // Apps Script web apps do not return CORS headers, so no-cors is used.
+    // The row is still written to the sheet.
+    await fetch(`${FORM_ENDPOINT}?${params.toString()}`, { method: 'GET', mode: 'no-cors' });
+    form.reset();
+    msg.classList.add('ok');
+    msg.textContent = 'Thanks! Your details have been saved.';
+  } catch (err) {
+    msg.classList.add('err');
+    msg.textContent = 'Could not send. Please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit';
+  }
+});
+</script>
+</body>
+</html>
